@@ -5,4 +5,3 @@ if %ERRORLEVEL% NEQ 0 (
 	exit /B %ERRORLEVEL%
 )
 del output.txt
-C:\Keil_v5\UV4\UV4.exe -c device-dashboard.uvprojx -j0
