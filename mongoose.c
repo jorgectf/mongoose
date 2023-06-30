@@ -1842,6 +1842,7 @@ struct printdirentrydata {
   const char *dir;
 };
 
+#if MG_ENABLE_DIRLIST
 static void printdirentry(const char *name, void *userdata) {
   struct printdirentrydata *d = (struct printdirentrydata *) userdata;
   struct mg_fs *fs = d->opts->fs == NULL ? &mg_fs_posix : d->opts->fs;
@@ -1948,6 +1949,7 @@ static void listdir(struct mg_connection *c, struct mg_http_message *hm,
   memcpy(c->send.buf + off - 12, tmp, n);  // Set content length
   c->is_resp = 0;                          // Mark response end
 }
+#endif
 
 // Resolve requested file into `path` and return its fs->st() result
 static int uri_to_path2(struct mg_connection *c, struct mg_http_message *hm,
@@ -2022,7 +2024,11 @@ void mg_http_serve_dir(struct mg_connection *c, struct mg_http_message *hm,
   if (flags < 0) {
     // Do nothing: the response has already been sent by uri_to_path()
   } else if (flags & MG_FS_DIR) {
+#if MG_ENABLE_DIRLIST
     listdir(c, hm, opts, path);
+#else
+    mg_http_reply(c, 403, "", "Forbidden\n");
+#endif
   } else if (flags && sp != NULL &&
              mg_globmatch(sp, strlen(sp), path, strlen(path))) {
     mg_http_serve_ssi(c, opts->root_dir, path);
@@ -5410,12 +5416,15 @@ char *mg_remove_double_dots(char *s) {
       while (s[0] != '\0') {
         if (s[0] == '/' || s[0] == '\\') {
           s++;
-        } else if (s[0] == '.' && s[1] == '.' &&
-                   (s[2] == '/' || s[2] == '\\')) {
-          s += 2;
-        } else {
-          break;
-        }
+        } else if (s[0] == '.' && s[1] == '.') {
+          if (s[2] == '\0' || s[2] == '/' || s[2] == '\\')
+            s += 2;
+          else 
+            break;
+          }
+          else {
+            break;
+          }
       }
     }
   }

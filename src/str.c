@@ -195,12 +195,15 @@ char *mg_remove_double_dots(char *s) {
       while (s[0] != '\0') {
         if (s[0] == '/' || s[0] == '\\') {
           s++;
-        } else if (s[0] == '.' && s[1] == '.' &&
-                   (s[2] == '/' || s[2] == '\\')) {
-          s += 2;
-        } else {
-          break;
-        }
+        } else if (s[0] == '.' && s[1] == '.') {
+          if (s[2] == '\0' || s[2] == '/' || s[2] == '\\')
+            s += 2;
+          else 
+            break;
+          }
+          else {
+            break;
+          }
       }
     }
   }
