@@ -52,7 +52,7 @@ jobs:
         # queries: security-extended,security-and-quality
 
     - name: Build
-      run: make install
+      run: sudo make install
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
